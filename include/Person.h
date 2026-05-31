@@ -19,6 +19,8 @@ public:
     // Accessors
     virtual std::string getFullName() const;
     std::string getEgn()     const { return egn; }
+    // Returns the EGN with all but the last 4 digits masked (privacy).
+    std::string getMaskedEgn() const;
     std::string getAddress() const { return address; }
     std::string getPhone()   const { return phone; }
 

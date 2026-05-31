@@ -10,9 +10,14 @@ std::string Person::getFullName() const {
     return firstName + " " + lastName;
 }
 
+std::string Person::getMaskedEgn() const {
+    if (egn.size() <= 4) return egn;
+    return std::string(egn.size() - 4, '*') + egn.substr(egn.size() - 4);
+}
+
 void Person::printInfo() const {
     std::cout << "  Name    : " << getFullName()  << "\n"
-              << "  EGN     : " << egn            << "\n"
+              << "  EGN     : " << getMaskedEgn()  << "\n"
               << "  Address : " << address         << "\n"
               << "  Phone   : " << phone           << "\n";
 }
