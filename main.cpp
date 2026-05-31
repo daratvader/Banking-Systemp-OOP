@@ -26,6 +26,18 @@ static double promptDouble(const std::string& label) {
     return val;
 }
 
+// Reads a menu choice; recovers gracefully from non-numeric input
+static int promptChoice() {
+    int choice;
+    if (!(std::cin >> choice)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return -1;
+    }
+    std::cin.ignore();
+    return choice;
+}
+
 static void header(const std::string& title) {
     std::cout << "\n" << std::string(60, '=') << "\n"
               << "  " << title << "\n"
@@ -302,9 +314,7 @@ int main(int argc, char* argv[]) {
                   << "  4. Reports & Statements     [Features 5, 6 & 7]\n"
                   << "  5. Run automated demo\n"
                   << "  0. Exit\n> ";
-        int choice;
-        std::cin >> choice;
-        std::cin.ignore();
+        int choice = promptChoice();
 
         switch (choice) {
             case 1: menuCustomers(bank);    break;
