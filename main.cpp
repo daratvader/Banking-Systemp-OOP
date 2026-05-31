@@ -199,75 +199,6 @@ static void menuReports(Bank* bank) {
     }
 }
 
-// ── Quick demo: seeds data and exercises all 5+ features automatically ─────
-static void runDemo(Bank* bank) {
-    header("AUTOMATED DEMO — all features");
-
-    std::cout << "\n[1] Registering customers...\n";
-    auto* c1 = bank->registerCustomer("Ivan",  "Petrov",  "9001011234",
-                                      "Sofia, ul. Vitosha 1", "0888111111",
-                                      "ivan.petrov", "1234");
-    auto* c2 = bank->registerCustomer("Maria", "Georgieva","9205152345",
-                                      "Plovdiv, ul. Maritsa 5","0888222222",
-                                      "maria.g", "5678");
-    bank->listAllCustomers();
-
-    std::cout << "\n[2] Opening accounts...\n";
-    bank->createSavingsAccount (c1->getCustomerId(), 1000.0, 0.04);
-    bank->createCheckingAccount(c1->getCustomerId(),  500.0, 200.0);
-    bank->createSavingsAccount (c2->getCustomerId(), 2500.0, 0.025);
-    bank->listCustomerAccounts(c1->getCustomerId());
-
-    const auto& ibanList1 = c1->getAccountIBANs();
-    std::string savIban  = ibanList1[0];
-    std::string chkIban  = ibanList1[1];
-    std::string c2Iban   = c2->getAccountIBANs()[0];
-
-    std::cout << "\n[3] Deposit & Withdrawal...\n";
-    bank->deposit (savIban, 300.0);
-    bank->withdraw(savIban, 150.0);
-    bank->deposit (chkIban, 50.0);
-    // CheckingAccount overdraft: withdraw more than balance (500+50=550, limit 200)
-    bank->withdraw(chkIban, 600.0);
-
-    std::cout << "\n[4] Transfer...\n";
-    bank->transfer(savIban, c2Iban, 200.0);
-
-    std::cout << "\n[5] Transaction history...\n";
-    bank->printTransactionHistory(savIban);
-
-    std::cout << "\n[6] Balance report...\n";
-    bank->printBalanceReport(c1->getCustomerId());
-
-    std::cout << "\n[7] Apply monthly interest/fees...\n";
-    bank->applyMonthlyRules();
-    bank->printBalanceReport(c1->getCustomerId());
-
-    std::cout << "\n[+] Full statement...\n";
-    bank->generateStatement(savIban);
-
-    // ── Feature 8: Authentication & roles ──────────────────────────────────
-    std::cout << "\n[8] Authentication & roles...\n";
-    bank->registerEmployee("Petar", "Dimitrov", "8503031234",
-                           "Sofia, HQ", "0888999999",
-                           "Teller", "admin", "adminpass");
-    AuthService auth(bank);
-    auth.loginAsCustomer("ivan.petrov", "1234");
-    std::cout << "  Customer can access own savings account? "
-              << (auth.canAccessAccount(savIban) ? "YES" : "NO") << "\n";
-    std::cout << "  Customer can access another customer's account? "
-              << (auth.canAccessAccount(c2Iban) ? "YES" : "NO") << "\n";
-    auth.logout();
-    auth.loginAsEmployee("admin", "adminpass");
-    std::cout << "  Employee can access any account? "
-              << (auth.canAccessAccount(c2Iban) ? "YES" : "NO") << "\n";
-
-    // ── Feature 9: Statement export to file ─────────────────────────────────
-    std::cout << "\n[9] Export statement to file...\n";
-    bank->exportStatementToFile(savIban);
-
-    std::cout << "\n  Demo complete.\n";
-}
 
 // ── Login screen using AuthService [Feature 8] ─────────────────────────────
 static void menuLogin(Bank* bank, AuthService& auth) {
@@ -297,12 +228,6 @@ int main(int argc, char* argv[]) {
                            "Manager", "admin", "admin");
     AuthService auth(bank);
 
-    // Launch demo if requested
-    if (argc > 1 && std::string(argv[1]) == "--demo") {
-        runDemo(bank);
-        return 0;
-    }
-
     menuLogin(bank, auth);
 
     bool running = true;
@@ -312,7 +237,6 @@ int main(int argc, char* argv[]) {
                   << "  2. Account Management       [Feature 2]\n"
                   << "  3. Transactions             [Features 3 & 4]\n"
                   << "  4. Reports & Statements     [Features 5, 6 & 7]\n"
-                  << "  5. Run automated demo\n"
                   << "  0. Exit\n> ";
         int choice = promptChoice();
 
@@ -321,7 +245,6 @@ int main(int argc, char* argv[]) {
             case 2: menuAccounts(bank);     break;
             case 3: menuTransactions(bank); break;
             case 4: menuReports(bank);      break;
-            case 5: runDemo(bank); pause(); break;
             case 0: running = false;        break;
             default: std::cout << "  Unknown option.\n"; break;
         }
