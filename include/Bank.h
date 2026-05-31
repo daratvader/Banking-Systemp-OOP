@@ -65,6 +65,10 @@ public:
     void generateStatement(const std::string& iban,
                            const std::string& from = "",
                            const std::string& to   = "") const;
+    // Writes the statement to a text file; returns the filename written.
+    std::string exportStatementToFile(const std::string& iban,
+                                      const std::string& from = "",
+                                      const std::string& to   = "") const;
 
     // ── Interest (Feature 7) ──────────────────────────────────────────────
     void applyMonthlyRules();
@@ -72,6 +76,11 @@ public:
     // ── Auth helper ───────────────────────────────────────────────────────
     Customer* authenticateCustomer(const std::string& username,
                                    const std::string& pin);
+    Employee* authenticateEmployee(const std::string& username,
+                                   const std::string& password);
+    // Verifies a customer is allowed to touch a given account (owns it)
+    bool customerOwnsAccount(const std::string& customerId,
+                             const std::string& iban) const;
     Employee* registerEmployee(const std::string& fn,   const std::string& ln,
                                const std::string& egn,  const std::string& addr,
                                const std::string& phone, const std::string& role,
