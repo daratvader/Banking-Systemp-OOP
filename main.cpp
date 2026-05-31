@@ -257,15 +257,41 @@ static void runDemo(Bank* bank) {
     std::cout << "\n  Demo complete.\n";
 }
 
+// ── Login screen using AuthService [Feature 8] ─────────────────────────────
+static void menuLogin(Bank* bank, AuthService& auth) {
+    header("LOGIN  [Feature 8]");
+    std::cout << "  1. Login as customer\n"
+              << "  2. Login as employee\n"
+              << "  3. Continue without login\n> ";
+    int ch; std::cin >> ch; std::cin.ignore();
+    if (ch == 1) {
+        auto u = prompt("Username");
+        auto p = prompt("PIN");
+        auth.loginAsCustomer(u, p);
+    } else if (ch == 2) {
+        auto u = prompt("Username");
+        auto p = prompt("Password");
+        auth.loginAsEmployee(u, p);
+    }
+    (void)bank;
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 int main(int argc, char* argv[]) {
     Bank* bank = Bank::getInstance();
+
+    // Seed a default employee so employee login works out of the box
+    bank->registerEmployee("Admin", "User", "0000000000", "HQ", "0000",
+                           "Manager", "admin", "admin");
+    AuthService auth(bank);
 
     // Launch demo if requested
     if (argc > 1 && std::string(argv[1]) == "--demo") {
         runDemo(bank);
         return 0;
     }
+
+    menuLogin(bank, auth);
 
     bool running = true;
     while (running) {
