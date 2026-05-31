@@ -1,0 +1,3 @@
+*.o
+banking
+statement_*.txt
