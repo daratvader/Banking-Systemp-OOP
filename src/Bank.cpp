@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 
 // ── Static members ─────────────────────────────────────────────────────────
@@ -230,6 +231,49 @@ void Bank::generateStatement(const std::string& iban,
     hist.printStatement(iban, opening, from, to);
 }
 
+std::string Bank::exportStatementToFile(const std::string& iban,
+                                        const std::string& from,
+                                        const std::string& to) const {
+    auto it = accounts.find(iban);
+    if (it == accounts.end())
+        throw AccountNotFoundException("Account not found: " + iban);
+    const auto* acc  = it->second;
+    const auto& hist = acc->getHistory();
+    const auto& all  = hist.getAll();
+
+    std::string filename = "statement_" + iban + ".txt";
+    std::ofstream out(filename);
+    if (!out.is_open())
+        throw std::runtime_error("Could not open file for writing: " + filename);
+
+    out << std::fixed << std::setprecision(2);
+    out << "=====================================================\n";
+    out << "  ACCOUNT STATEMENT\n";
+    out << "  IBAN : " << iban << "\n";
+    out << "  Type : " << acc->getAccountType() << "\n";
+    if (!from.empty() || !to.empty())
+        out << "  Period: " << (from.empty() ? "start" : from)
+            << " to " << (to.empty() ? "now" : to) << "\n";
+    out << "=====================================================\n";
+
+    double opening = 0.0;
+    if (!all.empty()) opening = all.front().getBalanceAfter() - all.front().getAmount();
+    out << "  Opening balance: " << opening << " BGN\n";
+    out << "-----------------------------------------------------\n";
+
+    auto list = (from.empty() && to.empty()) ? all : hist.filterByDate(from, to);
+    for (const auto& t : list)
+        out << "  " << t.getDetails() << "\n";
+
+    out << "-----------------------------------------------------\n";
+    out << "  Closing balance: " << acc->getBalance() << " BGN\n";
+    out << "=====================================================\n";
+    out.close();
+
+    std::cout << "  Statement written to file: " << filename << "\n";
+    return filename;
+}
+
 // ── Feature 7: Monthly rules ───────────────────────────────────────────────
 void Bank::applyMonthlyRules() {
     for (auto& [iban, acc] : accounts)
@@ -242,6 +286,21 @@ Customer* Bank::authenticateCustomer(const std::string& username, const std::str
     for (auto& [id, c] : customers)
         if (c->login(username, pin)) return c;
     return nullptr;
+}
+
+Employee* Bank::authenticateEmployee(const std::string& username, const std::string& password) {
+    for (auto& [id, e] : employees)
+        if (e->adminLogin(username, password)) return e;
+    return nullptr;
+}
+
+bool Bank::customerOwnsAccount(const std::string& customerId,
+                               const std::string& iban) const {
+    auto it = customers.find(customerId);
+    if (it == customers.end()) return false;
+    for (const auto& owned : it->second->getAccountIBANs())
+        if (owned == iban) return true;
+    return false;
 }
 
 Employee* Bank::registerEmployee(const std::string& fn,   const std::string& ln,
