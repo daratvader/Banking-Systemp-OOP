@@ -29,5 +29,9 @@ public:
     bool isEmployee()  const { return currentSession.role == UserRole::EMPLOYEE; }
     bool isCustomer()  const { return currentSession.role == UserRole::CUSTOMER; }
 
+    // Access control: employees may touch any account; customers only their own.
+    bool canAccessAccount(const std::string& iban) const;
+    void requireEmployee() const;   // throws UnauthorizedAccessException if not employee
+
     const Session& getSession() const { return currentSession; }
 };
