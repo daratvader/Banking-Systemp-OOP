@@ -159,6 +159,7 @@ static void menuReports(Bank* bank) {
                   << "  2. Balance report for customer\n"
                   << "  3. Full account statement\n"
                   << "  4. Apply monthly rules (interest & fees)  [Feature 7]\n"
+                  << "  5. Export statement to file               [Feature 9]\n"
                   << "  0. Back\n> ";
         int ch; std::cin >> ch; std::cin.ignore();
         try {
@@ -173,6 +174,9 @@ static void menuReports(Bank* bank) {
                 bank->generateStatement(iban);
             } else if (ch == 4) {
                 bank->applyMonthlyRules();
+            } else if (ch == 5) {
+                auto iban = prompt("IBAN");
+                bank->exportStatementToFile(iban);
             } else if (ch == 0) {
                 back = true;
             }
@@ -229,6 +233,26 @@ static void runDemo(Bank* bank) {
 
     std::cout << "\n[+] Full statement...\n";
     bank->generateStatement(savIban);
+
+    // ── Feature 8: Authentication & roles ──────────────────────────────────
+    std::cout << "\n[8] Authentication & roles...\n";
+    bank->registerEmployee("Petar", "Dimitrov", "8503031234",
+                           "Sofia, HQ", "0888999999",
+                           "Teller", "admin", "adminpass");
+    AuthService auth(bank);
+    auth.loginAsCustomer("ivan.petrov", "1234");
+    std::cout << "  Customer can access own savings account? "
+              << (auth.canAccessAccount(savIban) ? "YES" : "NO") << "\n";
+    std::cout << "  Customer can access another customer's account? "
+              << (auth.canAccessAccount(c2Iban) ? "YES" : "NO") << "\n";
+    auth.logout();
+    auth.loginAsEmployee("admin", "adminpass");
+    std::cout << "  Employee can access any account? "
+              << (auth.canAccessAccount(c2Iban) ? "YES" : "NO") << "\n";
+
+    // ── Feature 9: Statement export to file ─────────────────────────────────
+    std::cout << "\n[9] Export statement to file...\n";
+    bank->exportStatementToFile(savIban);
 
     std::cout << "\n  Demo complete.\n";
 }
